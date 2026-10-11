@@ -1,9 +1,11 @@
 name: Build test app (free, for Sideloadly)
 
-# Builds an UNSIGNED Paw Derby .ipa — no Apple Developer account needed.
-# Download it from the run's "Artifacts" and install it with Sideloadly + a free Apple ID.
 on:
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: paw-derby-ios
 
 jobs:
   ipa:
@@ -40,4 +42,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: PawDerby-unsigned-ipa
-          path: build/PawDerby-unsigned.ipa
+          path: paw-derby-ios/build/PawDerby-unsigned.ipa
