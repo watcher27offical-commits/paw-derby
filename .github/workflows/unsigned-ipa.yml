@@ -1,0 +1,43 @@
+name: Build test app (free, for Sideloadly)
+
+# Builds an UNSIGNED Paw Derby .ipa — no Apple Developer account needed.
+# Download it from the run's "Artifacts" and install it with Sideloadly + a free Apple ID.
+on:
+  workflow_dispatch:
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Capacitor
+        run: npm install --no-audit --no-fund
+      - name: Create the Xcode project
+        run: |
+          npx cap add ios
+          npm run ios:assets
+          npx cap sync ios
+      - name: Build unsigned app
+        run: |
+          APP_DIR=ios/App
+          if [ -d "$APP_DIR/App.xcworkspace" ]; then C=(-workspace "$APP_DIR/App.xcworkspace"); else C=(-project "$APP_DIR/App.xcodeproj"); fi
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName Paw Derby" $APP_DIR/App/Info.plist 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string Paw Derby" $APP_DIR/App/Info.plist
+          xcodebuild "${C[@]}" -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive archive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" | tail -20
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          (cd build && zip -qry PawDerby-unsigned.ipa Payload)
+          ls -la build/PawDerby-unsigned.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PawDerby-unsigned-ipa
+          path: build/PawDerby-unsigned.ipa
