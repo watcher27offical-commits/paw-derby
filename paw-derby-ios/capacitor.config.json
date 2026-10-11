@@ -1,0 +1,13 @@
+{
+  "appId": "ca.ediso.pawderby",
+  "appName": "Paw Derby",
+  "webDir": "www",
+  "server": {
+    "url": "https://ediso.fly.dev",
+    "errorPath": "offline.html"
+  },
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#241848"
+  }
+}
